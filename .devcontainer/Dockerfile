@@ -4,7 +4,20 @@
 ARG VARIANT="5.0"
 FROM mcr.microsoft.com/vscode/devcontainers/dotnet:0-${VARIANT}
 
+# Use a lightweight base image
+FROM debian:bullseye-slim
+
+# Install prerequisites
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl ca-certificates gnupg unzip \
+    && rm -rf /var/lib/apt/lists/*
+
 # [Option] Install Node.js
+ARG NODE_VERSION="lts/*"
+RUN curl -fsSL https://deb.nodesource.com/setup_lts.x | bash - \
+    && apt-get install -y nodejs \
+    && npm install -g npm@latest \
+    && apt-get clean -y && rm -rf /var/lib/apt/lists/*
 ARG INSTALL_NODE="true"
 ARG NODE_VERSION="lts/*"
 RUN if [ "${INSTALL_NODE}" = "true" ]; then su vscode -c "umask 0002 && . /usr/local/share/nvm/nvm.sh && nvm install ${NODE_VERSION} 2>&1"; fi
